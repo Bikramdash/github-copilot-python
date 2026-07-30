@@ -46,3 +46,12 @@ def test_generate_puzzle_clues_and_solution():
     assert non_empty == clues
     # solution must be fully filled
     assert all(c != sudoku_logic.EMPTY for r in solution for c in r)
+
+
+def test_generate_puzzle_difficulty_levels():
+    expected_clues = {'easy': 40, 'medium': 32, 'hard': 25}
+    for difficulty, clues in expected_clues.items():
+        puzzle, solution = sudoku_logic.generate_puzzle(difficulty=difficulty)
+        non_empty = sum(1 for row in puzzle for cell in row if cell != sudoku_logic.EMPTY)
+        assert non_empty == clues
+        assert all(cell != sudoku_logic.EMPTY for row in solution for cell in row)

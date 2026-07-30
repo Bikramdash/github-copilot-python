@@ -4,3 +4,13 @@ Thumbs.db
 
 # Ignore Python virtual environment
 .venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Pytest cache
+.pytest_cache/
+
+# VS Code settings (optional)
+.vscode/

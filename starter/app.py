@@ -15,8 +15,10 @@ def index():
 
 @app.route('/new')
 def new_game():
-    clues = int(request.args.get('clues', 35))
-    puzzle, solution = sudoku_logic.generate_puzzle(clues)
+    difficulty = request.args.get('difficulty', '').strip().lower() or None
+    clues_arg = request.args.get('clues')
+    clues = int(clues_arg) if clues_arg is not None else None
+    puzzle, solution = sudoku_logic.generate_puzzle(clues=clues, difficulty=difficulty)
     CURRENT['puzzle'] = puzzle
     CURRENT['solution'] = solution
     return jsonify({'puzzle': puzzle})
@@ -34,6 +36,22 @@ def check_solution():
             if board[i][j] != solution[i][j]:
                 incorrect.append([i, j])
     return jsonify({'incorrect': incorrect})
+
+@app.route('/hint', methods=['POST'])
+def get_hint():
+    data = request.get_json(silent=True) or {}
+    board = data.get('board')
+    solution = CURRENT.get('solution')
+
+    if solution is None:
+        return jsonify({'error': 'No game in progress'}), 400
+
+    updated_board, row, col, value = sudoku_logic.get_hint(board, solution)
+    if updated_board is None:
+        return jsonify({'error': 'No empty cells remain'}), 400
+
+    CURRENT['puzzle'] = updated_board
+    return jsonify({'puzzle': updated_board, 'row': row, 'col': col, 'value': value})
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -61,3 +61,38 @@ def test_new_and_check_routes():
     assert res3.status_code == 200
     data3 = res3.get_json()
     assert len(data3['incorrect']) >= 1
+
+
+def test_new_game_supports_difficulty_param():
+    client = app.test_client()
+    res = client.get('/new?difficulty=hard')
+    assert res.status_code == 200
+    puzzle = res.get_json()['puzzle']
+    non_empty = sum(1 for row in puzzle for cell in row if cell != 0)
+    assert non_empty == 25
+
+
+def test_hint_route_reveals_one_correct_value():
+    client = app.test_client()
+    res = client.get('/new?clues=25')
+    assert res.status_code == 200
+    puzzle = res.get_json()['puzzle']
+    solution = app_mod.CURRENT.get('solution')
+
+    initial_empty_count = sum(1 for row in puzzle for cell in row if cell == 0)
+    assert initial_empty_count > 0
+
+    res2 = client.post('/hint', json={'board': puzzle})
+    assert res2.status_code == 200
+    data = res2.get_json()
+    assert 'puzzle' in data and 'row' in data and 'col' in data and 'value' in data
+
+    updated_puzzle = data['puzzle']
+    row, col = data['row'], data['col']
+    assert updated_puzzle[row][col] == data['value'] == solution[row][col]
+    assert sum(1 for row_values in updated_puzzle for cell in row_values if cell == 0) == initial_empty_count - 1
+
+    for i in range(len(puzzle)):
+        for j in range(len(puzzle[i])):
+            if puzzle[i][j] != 0:
+                assert updated_puzzle[i][j] == puzzle[i][j]
