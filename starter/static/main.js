@@ -2,6 +2,21 @@
 const SIZE = 9;
 let puzzle = [];
 const timer = new window.SudokuTimer(document.getElementById('timer-display'));
+const leaderboard = new window.SudokuLeaderboard(document.getElementById('leaderboard-table'));
+
+function promptForLeaderboardEntry() {
+  const playerName = window.prompt('Congratulations! Enter your name for the leaderboard:', 'Player');
+  if (playerName === null) {
+    return;
+  }
+
+  const name = String(playerName).trim() || 'Player';
+  leaderboard.addEntry({
+    name,
+    difficulty: getSelectedDifficulty(),
+    timeSeconds: timer.elapsedSeconds
+  });
+}
 
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
@@ -114,6 +129,7 @@ async function checkSolution() {
     timer.stop();
     msg.style.color = '#388e3c';
     msg.innerText = 'Congratulations! You solved it!';
+    promptForLeaderboardEntry();
     return;
   }
 

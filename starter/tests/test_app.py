@@ -101,6 +101,15 @@ def test_index_route_includes_timer_ui():
     assert b'id="timer-display"' in res.data
 
 
+def test_index_route_includes_leaderboard_ui():
+    client = app.test_client()
+    res = client.get('/')
+    assert res.status_code == 200
+    assert b'id="leaderboard-container"' in res.data
+    assert b'id="leaderboard-table"' in res.data
+    assert b'Leaderboard' in res.data
+
+
 def test_hint_route_reveals_one_correct_value():
     client = app.test_client()
     res = client.get('/new?clues=25')
