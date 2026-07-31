@@ -93,3 +93,15 @@ def get_hint(puzzle, solution):
                 return updated_board, row, col, solution[row][col]
 
     return None, None, None, None
+
+
+def find_incorrect_cells(board, solution):
+    if board is None or solution is None:
+        return []
+
+    incorrect = []
+    for row in range(SIZE):
+        for col in range(SIZE):
+            if board[row][col] != EMPTY and board[row][col] != solution[row][col]:
+                incorrect.append([row, col])
+    return incorrect

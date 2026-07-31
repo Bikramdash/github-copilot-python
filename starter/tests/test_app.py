@@ -32,6 +32,7 @@ def test_index_route():
     res = client.get('/')
     assert res.status_code == 200
     assert b"Sudoku Game" in res.data
+    assert b"Check Puzzle" in res.data
 
 
 def test_new_and_check_routes():
@@ -61,6 +62,14 @@ def test_new_and_check_routes():
     assert res3.status_code == 200
     data3 = res3.get_json()
     assert len(data3['incorrect']) >= 1
+
+    # empty cells should not be reported as incorrect
+    empty_board = deepcopy(solution)
+    empty_board[0][0] = 0
+    res4 = client.post('/check', json={'board': empty_board})
+    assert res4.status_code == 200
+    data4 = res4.get_json()
+    assert data4['incorrect'] == []
 
 
 def test_new_game_supports_difficulty_param():

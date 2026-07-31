@@ -25,6 +25,16 @@ function createBoardElement() {
   }
 }
 
+function resetCellStyles(inputs) {
+  for (let idx = 0; idx < inputs.length; idx++) {
+    const inp = inputs[idx];
+    if (inp.disabled) {
+      continue;
+    }
+    inp.className = 'sudoku-cell';
+  }
+}
+
 function getSelectedDifficulty() {
   return document.getElementById('difficulty-select').value;
 }
@@ -85,11 +95,13 @@ async function checkSolution() {
     msg.innerText = data.error;
     return;
   }
-  const incorrect = new Set(data.incorrect.map(x => x[0]*SIZE + x[1]));
+  const incorrect = new Set(data.incorrect.map(x => x[0] * SIZE + x[1]));
+  resetCellStyles(inputs);
   for (let idx = 0; idx < inputs.length; idx++) {
     const inp = inputs[idx];
-    if (inp.disabled) continue;
-    inp.className = 'sudoku-cell';
+    if (inp.disabled) {
+      continue;
+    }
     if (incorrect.has(idx)) {
       inp.className = 'sudoku-cell incorrect';
     }
