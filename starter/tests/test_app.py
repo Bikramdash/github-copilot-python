@@ -48,12 +48,22 @@ def test_new_and_check_routes():
     # Ensure server stored solution
     solution = app_mod.CURRENT.get('solution')
     assert solution is not None
-    # submit the correct solution -> no incorrect cells
+    # submit the correct solution -> no incorrect cells and full board is solved
     res2 = client.post('/check', json={'board': solution})
     assert res2.status_code == 200
     data2 = res2.get_json()
-    assert 'incorrect' in data2
+    assert 'incorrect' in data2 and 'solved' in data2
     assert data2['incorrect'] == []
+    assert data2['solved'] is True
+
+    # a partially correct board must not count as solved
+    partial = deepcopy(solution)
+    partial[0][0] = 0
+    partial[1][1] = solution[1][1]
+    res_partial = client.post('/check', json={'board': partial})
+    assert res_partial.status_code == 200
+    partial_data = res_partial.get_json()
+    assert partial_data['solved'] is False
 
     # change one cell to be incorrect
     bad = deepcopy(solution)
@@ -62,14 +72,16 @@ def test_new_and_check_routes():
     assert res3.status_code == 200
     data3 = res3.get_json()
     assert len(data3['incorrect']) >= 1
+    assert data3['solved'] is False
 
-    # empty cells should not be reported as incorrect
+    # empty cells should not be reported as incorrect, but the board is not solved
     empty_board = deepcopy(solution)
     empty_board[0][0] = 0
     res4 = client.post('/check', json={'board': empty_board})
     assert res4.status_code == 200
     data4 = res4.get_json()
     assert data4['incorrect'] == []
+    assert data4['solved'] is False
 
 
 def test_new_game_supports_difficulty_param():
@@ -79,6 +91,14 @@ def test_new_game_supports_difficulty_param():
     puzzle = res.get_json()['puzzle']
     non_empty = sum(1 for row in puzzle for cell in row if cell != 0)
     assert non_empty == 25
+
+
+def test_index_route_includes_timer_ui():
+    client = app.test_client()
+    res = client.get('/')
+    assert res.status_code == 200
+    assert b'id="timer-container"' in res.data
+    assert b'id="timer-display"' in res.data
 
 
 def test_hint_route_reveals_one_correct_value():

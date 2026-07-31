@@ -32,7 +32,9 @@ def check_solution():
         return jsonify({'error': 'No game in progress'}), 400
 
     incorrect = sudoku_logic.find_incorrect_cells(board, solution)
-    return jsonify({'incorrect': incorrect})
+    is_complete = board is not None and all(cell != 0 for row in board for cell in row)
+    is_solved = is_complete and not incorrect
+    return jsonify({'incorrect': incorrect, 'solved': is_solved})
 
 @app.route('/hint', methods=['POST'])
 def get_hint():

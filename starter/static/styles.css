@@ -11,6 +11,28 @@ h1 {
     color: #333;
 }
 
+#timer-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    margin-top: 12px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1f2937;
+    background: #ffffff;
+    border: 2px solid #d1d5db;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.timer-label {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #4b5563;
+}
+
 #sudoku-board {
     display: inline-block;
     margin: 30px auto;

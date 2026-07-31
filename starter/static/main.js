@@ -1,6 +1,7 @@
 // Client-side rendering and interaction for the Flask-backed Sudoku
 const SIZE = 9;
 let puzzle = [];
+const timer = new window.SudokuTimer(document.getElementById('timer-display'));
 
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
@@ -63,6 +64,9 @@ function renderPuzzle(puz) {
 }
 
 async function newGame() {
+  timer.reset();
+  timer.start();
+
   const difficulty = getSelectedDifficulty();
   const query = new URLSearchParams({difficulty});
   const res = await fetch(`/new?${query}`);
@@ -106,9 +110,16 @@ async function checkSolution() {
       inp.className = 'sudoku-cell incorrect';
     }
   }
-  if (incorrect.size === 0) {
+  if (data.solved) {
+    timer.stop();
     msg.style.color = '#388e3c';
     msg.innerText = 'Congratulations! You solved it!';
+    return;
+  }
+
+  if (incorrect.size === 0) {
+    msg.style.color = '#1976d2';
+    msg.innerText = 'Board is valid so far.';
   } else {
     msg.style.color = '#d32f2f';
     msg.innerText = 'Some cells are incorrect.';

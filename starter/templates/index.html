@@ -7,6 +7,10 @@
 </head>
 <body>
   <h1>Sudoku Game</h1>
+  <div id="timer-container" aria-live="polite">
+    <span class="timer-label">Time</span>
+    <span id="timer-display">00:00</span>
+  </div>
   <div id="sudoku-board"></div>
   <div class="controls">
     <label for="difficulty-select">Difficulty</label>
@@ -20,6 +24,7 @@
     <button id="get-hint">Hint</button>
     <span id="message"></span>
   </div>
+  <script src="/static/timer.js"></script>
   <script src="/static/main.js"></script>
 </body>
 </html>
