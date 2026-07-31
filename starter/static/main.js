@@ -3,6 +3,7 @@ const SIZE = 9;
 let puzzle = [];
 const timer = new window.SudokuTimer(document.getElementById('timer-display'));
 const leaderboard = new window.SudokuLeaderboard(document.getElementById('leaderboard-table'));
+const statistics = new window.SudokuStatistics(document.getElementById('statistics-panel'));
 
 function promptForLeaderboardEntry() {
   const playerName = window.prompt('Congratulations! Enter your name for the leaderboard:', 'Player');
@@ -79,10 +80,11 @@ function renderPuzzle(puz) {
 }
 
 async function newGame() {
+  const difficulty = getSelectedDifficulty();
   timer.reset();
   timer.start();
+  statistics.recordGameStart(difficulty);
 
-  const difficulty = getSelectedDifficulty();
   const query = new URLSearchParams({difficulty});
   const res = await fetch(`/new?${query}`);
   const data = await res.json();
@@ -127,6 +129,8 @@ async function checkSolution() {
   }
   if (data.solved) {
     timer.stop();
+    const difficulty = getSelectedDifficulty();
+    statistics.recordWin(difficulty, timer.elapsedSeconds);
     msg.style.color = '#388e3c';
     msg.innerText = 'Congratulations! You solved it!';
     promptForLeaderboardEntry();

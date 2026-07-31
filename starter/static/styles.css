@@ -120,7 +120,8 @@ select {
     color: #d32f2f;
 }
 
-#leaderboard-container {
+#leaderboard-container,
+#statistics-container {
     width: min(90vw, 560px);
     margin: 30px auto 40px;
     background: #ffffff;
@@ -130,7 +131,8 @@ select {
     padding: 16px 20px;
 }
 
-#leaderboard-container h2 {
+#leaderboard-container h2,
+#statistics-container h2 {
     margin: 0 0 12px;
     color: #1f2937;
     font-size: 1.3rem;
@@ -156,4 +158,68 @@ select {
 
 #leaderboard-table tbody tr:last-child td {
     border-bottom: none;
+}
+
+#statistics-panel {
+    display: block;
+}
+
+.statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(120px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.stat-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px 10px;
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.best-times {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 12px;
+}
+
+.best-times h3 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    color: #374151;
+}
+
+.best-times ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.best-times li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+    color: #374151;
+}
+
+.best-times strong {
+    color: #111827;
 }

@@ -110,6 +110,15 @@ def test_index_route_includes_leaderboard_ui():
     assert b'Leaderboard' in res.data
 
 
+def test_index_route_includes_statistics_ui():
+    client = app.test_client()
+    res = client.get('/')
+    assert res.status_code == 200
+    assert b'id="statistics-container"' in res.data
+    assert b'id="statistics-panel"' in res.data
+    assert b'Statistics' in res.data
+
+
 def test_hint_route_reveals_one_correct_value():
     client = app.test_client()
     res = client.get('/new?clues=25')
