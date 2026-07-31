@@ -33,6 +33,60 @@ function cloneBoard(board) {
   return board.map(row => [...row]);
 }
 
+function cloneHistory(history) {
+  return Array.isArray(history) ? history.map((entry) => cloneBoard(entry)) : [];
+}
+
+function persistGameState() {
+  if (!window.SudokuSaveLoad || typeof window.SudokuSaveLoad.saveGame !== 'function') {
+    return null;
+  }
+
+  const board = document.getElementById('sudoku-board') ? readBoardFromInputs() : cloneBoard(puzzle);
+  const state = {
+    board,
+    initialBoard: cloneBoard(initialBoard.length ? initialBoard : puzzle),
+    difficulty: getSelectedDifficulty(),
+    elapsedSeconds: timer.elapsedSeconds,
+    undoStack,
+    redoStack,
+    running: timer.running
+  };
+
+  return window.SudokuSaveLoad.saveGame(state);
+}
+
+function restoreSavedGame(snapshot) {
+  if (!snapshot) {
+    return;
+  }
+
+  const difficultySelect = document.getElementById('difficulty-select');
+  if (difficultySelect) {
+    difficultySelect.value = snapshot.difficulty || getSelectedDifficulty();
+  }
+
+  puzzle = cloneBoard(snapshot.board || []);
+  initialBoard = cloneBoard(snapshot.initialBoard || snapshot.board || []);
+  undoStack = cloneHistory(snapshot.undoStack || []);
+  redoStack = cloneHistory(snapshot.redoStack || []);
+
+  createBoardElement();
+  applyBoardState(puzzle);
+  updateHistoryButtons();
+
+  timer.elapsedSeconds = Math.max(0, Number(snapshot.elapsedSeconds) || 0);
+  if (snapshot.running) {
+    timer.start();
+  } else {
+    timer.stop();
+    timer.render();
+  }
+
+  persistGameState();
+  setMessage('Saved game restored.', 'info');
+}
+
 function readBoardFromInputs() {
   const boardDiv = document.getElementById('sudoku-board');
   const inputs = boardDiv.getElementsByTagName('input');
@@ -97,6 +151,7 @@ function undoMove() {
   const previousBoard = undoStack.pop();
   applyBoardState(previousBoard);
   updateHistoryButtons();
+  persistGameState();
 }
 
 function redoMove() {
@@ -108,6 +163,7 @@ function redoMove() {
   const nextBoard = redoStack.pop();
   applyBoardState(nextBoard);
   updateHistoryButtons();
+  persistGameState();
 }
 
 function promptForLeaderboardEntry() {
@@ -151,6 +207,7 @@ function createBoardElement() {
         const currentBoard = readBoardFromInputs();
         if (JSON.stringify(previousBoard) !== JSON.stringify(currentBoard)) {
           captureUserMove(previousBoard);
+          persistGameState();
         }
         input.dataset.previousBoard = JSON.stringify(currentBoard);
       });
@@ -189,9 +246,13 @@ function renderPuzzle(puz) {
   createBoardElement();
   applyBoardState(puzzle);
   resetHistory();
+  persistGameState();
 }
 
 attachPanelResetHandlers();
+window.addEventListener('sudoku:save', () => {
+  persistGameState();
+});
 
 async function newGame() {
   const difficulty = getSelectedDifficulty();
@@ -204,6 +265,7 @@ async function newGame() {
   const data = await res.json();
   renderPuzzle(data.puzzle);
   setMessage('');
+  persistGameState();
 }
 
 async function checkSolution() {
@@ -283,12 +345,23 @@ async function getHint() {
 
 // Wire buttons
 window.addEventListener('load', () => {
-  document.getElementById('new-game').addEventListener('click', newGame);
+  document.getElementById('new-game').addEventListener('click', () => {
+    if (window.SudokuSaveLoad) {
+      window.SudokuSaveLoad.clearGame();
+    }
+    newGame();
+  });
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   document.getElementById('get-hint').addEventListener('click', getHint);
   document.getElementById('undo-move').addEventListener('click', undoMove);
   document.getElementById('redo-move').addEventListener('click', redoMove);
   updateHistoryButtons();
-  // initialize
+
+  const savedGame = window.SudokuSaveLoad ? window.SudokuSaveLoad.promptToResume() : null;
+  if (savedGame) {
+    restoreSavedGame(savedGame);
+    return;
+  }
+
   newGame();
 });

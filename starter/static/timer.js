@@ -18,6 +18,11 @@
 
     render() {
       this.display.textContent = SudokuTimer.formatMMSS(this.elapsedSeconds);
+      if (window.CustomEvent) {
+        window.dispatchEvent(new CustomEvent('sudoku:save', {
+          detail: { elapsedSeconds: this.elapsedSeconds, running: this.running }
+        }));
+      }
     }
 
     start() {
