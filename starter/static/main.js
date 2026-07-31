@@ -8,6 +8,27 @@ const timer = new window.SudokuTimer(document.getElementById('timer-display'));
 const leaderboard = new window.SudokuLeaderboard(document.getElementById('leaderboard-table'));
 const statistics = new window.SudokuStatistics(document.getElementById('statistics-panel'));
 
+function attachPanelResetHandlers() {
+  const resetLeaderboardButton = document.getElementById('reset-leaderboard');
+  const resetStatisticsButton = document.getElementById('reset-statistics');
+
+  if (resetLeaderboardButton) {
+    resetLeaderboardButton.addEventListener('click', () => {
+      window.localStorage.removeItem('sudoku-leaderboard');
+      leaderboard.load();
+      leaderboard.render();
+    });
+  }
+
+  if (resetStatisticsButton) {
+    resetStatisticsButton.addEventListener('click', () => {
+      window.localStorage.removeItem('sudoku-statistics');
+      statistics.stats = statistics.load();
+      statistics.render();
+    });
+  }
+}
+
 function cloneBoard(board) {
   return board.map(row => [...row]);
 }
@@ -139,6 +160,15 @@ function createBoardElement() {
   }
 }
 
+function setMessage(message, type = 'info') {
+  const msg = document.getElementById('message');
+  if (!msg) {
+    return;
+  }
+  msg.textContent = message;
+  msg.className = `message message-${type}`;
+}
+
 function resetCellStyles(inputs) {
   for (let idx = 0; idx < inputs.length; idx++) {
     const inp = inputs[idx];
@@ -161,6 +191,8 @@ function renderPuzzle(puz) {
   resetHistory();
 }
 
+attachPanelResetHandlers();
+
 async function newGame() {
   const difficulty = getSelectedDifficulty();
   timer.reset();
@@ -171,7 +203,7 @@ async function newGame() {
   const res = await fetch(`/new?${query}`);
   const data = await res.json();
   renderPuzzle(data.puzzle);
-  document.getElementById('message').innerText = '';
+  setMessage('');
 }
 
 async function checkSolution() {
@@ -192,10 +224,8 @@ async function checkSolution() {
     body: JSON.stringify({board})
   });
   const data = await res.json();
-  const msg = document.getElementById('message');
   if (data.error) {
-    msg.style.color = '#d32f2f';
-    msg.innerText = data.error;
+    setMessage(data.error, 'error');
     return;
   }
   const incorrect = new Set(data.incorrect.map(x => x[0] * SIZE + x[1]));
@@ -213,18 +243,15 @@ async function checkSolution() {
     timer.stop();
     const difficulty = getSelectedDifficulty();
     statistics.recordWin(difficulty, timer.elapsedSeconds);
-    msg.style.color = '#388e3c';
-    msg.innerText = 'Congratulations! You solved it!';
+    setMessage('Congratulations! You solved it!', 'success');
     promptForLeaderboardEntry();
     return;
   }
 
   if (incorrect.size === 0) {
-    msg.style.color = '#1976d2';
-    msg.innerText = 'Board is valid so far.';
+    setMessage('Board is valid so far.', 'info');
   } else {
-    msg.style.color = '#d32f2f';
-    msg.innerText = 'Some cells are incorrect.';
+    setMessage('Some cells are incorrect.', 'error');
   }
 }
 
@@ -246,15 +273,12 @@ async function getHint() {
     body: JSON.stringify({board})
   });
   const data = await res.json();
-  const msg = document.getElementById('message');
   if (data.error) {
-    msg.style.color = '#d32f2f';
-    msg.innerText = data.error;
+    setMessage(data.error, 'error');
     return;
   }
   renderPuzzle(data.puzzle);
-  msg.style.color = '#1976d2';
-  msg.innerText = `Hint revealed row ${data.row + 1}, column ${data.col + 1}.`;
+  setMessage(`Hint revealed row ${data.row + 1}, column ${data.col + 1}.`, 'info');
 }
 
 // Wire buttons

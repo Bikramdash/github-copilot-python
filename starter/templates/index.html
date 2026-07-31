@@ -6,47 +6,78 @@
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <h1>Sudoku Game</h1>
-  <div id="timer-container" aria-live="polite">
-    <span class="timer-label">Time</span>
-    <span id="timer-display">00:00</span>
+  <div class="page-shell">
+    <header class="app-header">
+      <h1>Sudoku Game</h1>
+    </header>
+
+    <div class="game-stage" aria-label="Sudoku game area">
+      <aside class="side-panel game-controls-left" aria-label="Game timer settings">
+        <div id="timer-container" aria-live="polite">
+          <span class="timer-label">Time</span>
+          <span id="timer-display">00:00</span>
+        </div>
+
+        <div class="difficulty-control">
+          <label for="difficulty-select">Difficulty</label>
+          <select id="difficulty-select">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+      </aside>
+
+      <div class="board-wrap">
+        <div id="sudoku-board" aria-label="Sudoku board"></div>
+      </div>
+
+      <aside class="side-panel game-controls-right" aria-label="Game actions panel">
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle between light and dark mode" aria-pressed="false">Dark Mode</button>
+        <button id="get-hint" type="button">Hint</button>
+      </aside>
+    </div>
+
+    <div class="action-row" aria-label="Game actions">
+      <button id="new-game" type="button">New Game</button>
+      <button id="check-solution" type="button">Check Puzzle</button>
+      <button id="undo-move" type="button">Undo</button>
+      <button id="redo-move" type="button">Redo</button>
+    </div>
+
+    <div id="message" class="message" aria-live="polite"></div>
+
+    <div id="leaderboard-container" aria-live="polite">
+      <div class="panel-header">
+        <h2>Leaderboard</h2>
+        <button id="reset-leaderboard" class="panel-reset" type="button">Reset</button>
+      </div>
+      <table id="leaderboard-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>Time</th>
+            <th>Difficulty</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div id="statistics-container" aria-live="polite">
+      <div class="panel-header">
+        <h2>Statistics</h2>
+        <button id="reset-statistics" class="panel-reset" type="button">Reset</button>
+      </div>
+      <div id="statistics-panel"></div>
+    </div>
   </div>
-  <div id="sudoku-board"></div>
-  <div class="controls">
-    <label for="difficulty-select">Difficulty</label>
-    <select id="difficulty-select">
-      <option value="easy">Easy</option>
-      <option value="medium" selected>Medium</option>
-      <option value="hard">Hard</option>
-    </select>
-    <button id="new-game">New Game</button>
-    <button id="check-solution">Check Puzzle</button>
-    <button id="get-hint">Hint</button>
-    <button id="undo-move" type="button">Undo</button>
-    <button id="redo-move" type="button">Redo</button>
-    <span id="message"></span>
-  </div>
-  <div id="leaderboard-container" aria-live="polite">
-    <h2>Leaderboard</h2>
-    <table id="leaderboard-table">
-      <thead>
-        <tr>
-          <th>Rank</th>
-          <th>Name</th>
-          <th>Time</th>
-          <th>Difficulty</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-  <div id="statistics-container" aria-live="polite">
-    <h2>Statistics</h2>
-    <div id="statistics-panel"></div>
-  </div>
+
   <script src="/static/timer.js"></script>
   <script src="/static/leaderboard.js"></script>
   <script src="/static/statistics.js"></script>
+  <script src="/static/theme.js"></script>
   <script src="/static/main.js"></script>
 </body>
 </html>

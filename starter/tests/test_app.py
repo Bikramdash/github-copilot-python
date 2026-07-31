@@ -101,6 +101,15 @@ def test_index_route_includes_timer_ui():
     assert b'id="timer-display"' in res.data
 
 
+def test_index_route_includes_theme_toggle():
+    client = app.test_client()
+    res = client.get('/')
+    assert res.status_code == 200
+    assert b'id="theme-toggle"' in res.data
+    assert b'Dark Mode' in res.data or b'Light Mode' in res.data
+    assert b'theme.js' in res.data
+
+
 def test_index_route_includes_undo_redo_buttons():
     client = app.test_client()
     res = client.get('/')
@@ -127,6 +136,14 @@ def test_index_route_includes_statistics_ui():
     assert b'id="statistics-container"' in res.data
     assert b'id="statistics-panel"' in res.data
     assert b'Statistics' in res.data
+
+
+def test_index_route_includes_reset_controls():
+    client = app.test_client()
+    res = client.get('/')
+    assert res.status_code == 200
+    assert b'id="reset-leaderboard"' in res.data
+    assert b'id="reset-statistics"' in res.data
 
 
 def test_hint_route_reveals_one_correct_value():
