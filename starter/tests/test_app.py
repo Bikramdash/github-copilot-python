@@ -101,6 +101,16 @@ def test_index_route_includes_timer_ui():
     assert b'id="timer-display"' in res.data
 
 
+def test_index_route_includes_undo_redo_buttons():
+    client = app.test_client()
+    res = client.get('/')
+    assert res.status_code == 200
+    assert b'id="undo-move"' in res.data
+    assert b'id="redo-move"' in res.data
+    assert b'Undo' in res.data
+    assert b'Redo' in res.data
+
+
 def test_index_route_includes_leaderboard_ui():
     client = app.test_client()
     res = client.get('/')
