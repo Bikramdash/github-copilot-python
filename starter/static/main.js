@@ -4,6 +4,8 @@ let puzzle = [];
 let initialBoard = [];
 let undoStack = [];
 let redoStack = [];
+let hintsUsed = 0;
+let totalMovesMade = 0;
 const timer = new window.SudokuTimer(document.getElementById('timer-display'));
 const leaderboard = new window.SudokuLeaderboard(document.getElementById('leaderboard-table'));
 const statistics = new window.SudokuStatistics(document.getElementById('statistics-panel'));
@@ -50,7 +52,9 @@ function persistGameState() {
     elapsedSeconds: timer.elapsedSeconds,
     undoStack,
     redoStack,
-    running: timer.running
+    running: timer.running,
+    hintsUsed,
+    movesMade: totalMovesMade
   };
 
   return window.SudokuSaveLoad.saveGame(state);
@@ -70,6 +74,8 @@ function restoreSavedGame(snapshot) {
   initialBoard = cloneBoard(snapshot.initialBoard || snapshot.board || []);
   undoStack = cloneHistory(snapshot.undoStack || []);
   redoStack = cloneHistory(snapshot.redoStack || []);
+  hintsUsed = Number(snapshot.hintsUsed) || 0;
+  totalMovesMade = Number(snapshot.movesMade) || 0;
 
   createBoardElement();
   applyBoardState(puzzle);
@@ -135,6 +141,7 @@ function resetHistory() {
 
 function captureUserMove(previousBoard) {
   undoStack.push(cloneBoard(previousBoard));
+  totalMovesMade += 1;
   if (undoStack.length > 100) {
     undoStack.shift();
   }
@@ -249,6 +256,11 @@ function renderPuzzle(puz) {
   persistGameState();
 }
 
+function resetGameMetrics() {
+  hintsUsed = 0;
+  totalMovesMade = 0;
+}
+
 attachPanelResetHandlers();
 window.addEventListener('sudoku:save', () => {
   persistGameState();
@@ -256,6 +268,7 @@ window.addEventListener('sudoku:save', () => {
 
 async function newGame() {
   const difficulty = getSelectedDifficulty();
+  resetGameMetrics();
   timer.reset();
   timer.start();
   statistics.recordGameStart(difficulty);
@@ -305,8 +318,19 @@ async function checkSolution() {
     timer.stop();
     const difficulty = getSelectedDifficulty();
     statistics.recordWin(difficulty, timer.elapsedSeconds);
-    setMessage('Congratulations! You solved it!', 'success');
     promptForLeaderboardEntry();
+
+    const completionModal = window.SudokuCompletionModal;
+    if (completionModal && typeof completionModal.show === 'function') {
+      completionModal.show({
+        difficulty: difficulty.charAt(0).toUpperCase() + difficulty.slice(1),
+        elapsedSeconds: timer.elapsedSeconds,
+        hintsUsed,
+        totalMoves: totalMovesMade
+      });
+    } else {
+      setMessage('Congratulations! You solved it!', 'success');
+    }
     return;
   }
 
@@ -339,6 +363,7 @@ async function getHint() {
     setMessage(data.error, 'error');
     return;
   }
+  hintsUsed += 1;
   renderPuzzle(data.puzzle);
   setMessage(`Hint revealed row ${data.row + 1}, column ${data.col + 1}.`, 'info');
 }
@@ -351,6 +376,16 @@ window.addEventListener('load', () => {
     }
     newGame();
   });
+
+  if (window.SudokuCompletionModal && typeof window.SudokuCompletionModal.setPlayAgainHandler === 'function') {
+    window.SudokuCompletionModal.setPlayAgainHandler(() => {
+      if (window.SudokuSaveLoad) {
+        window.SudokuSaveLoad.clearGame();
+      }
+      newGame();
+    });
+  }
+
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   document.getElementById('get-hint').addEventListener('click', getHint);
   document.getElementById('undo-move').addEventListener('click', undoMove);

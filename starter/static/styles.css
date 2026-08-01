@@ -12,6 +12,7 @@
     --cell-input-bg: #f8fafc;
     --cell-prefilled-bg: #e0e0e0;
     --cell-focus-bg: #e0f7fa;
+    --cell-focus-ring: #0f766e;
     --cell-incorrect-bg: #ffcdd2;
     --button-bg: #1976d2;
     --button-hover-bg: #1565c0;
@@ -39,6 +40,7 @@ body[data-theme='dark'] {
     --cell-input-bg: #111827;
     --cell-prefilled-bg: #374151;
     --cell-focus-bg: #1d4ed8;
+    --cell-focus-ring: #7dd3fc;
     --cell-incorrect-bg: #7f1d1d;
     --button-bg: #2563eb;
     --button-hover-bg: #1d4ed8;
@@ -202,8 +204,13 @@ select {
     transition: background 0.2s ease, color 0.2s ease;
 }
 
-.sudoku-cell:focus {
+.sudoku-cell.is-selected,
+.sudoku-cell:focus-visible {
     background: var(--cell-focus-bg);
+    border-color: var(--cell-focus-ring);
+    box-shadow: inset 0 0 0 2px var(--cell-focus-ring);
+    position: relative;
+    z-index: 1;
 }
 
 .sudoku-cell.prefilled {
@@ -257,6 +264,186 @@ button:hover {
 button:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+}
+
+.completion-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.completion-modal.is-visible {
+    display: flex;
+}
+
+.completion-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+}
+
+.completion-modal-panel {
+    position: relative;
+    width: min(100%, 480px);
+    background: var(--panel-bg);
+    color: var(--text-color);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    box-shadow: 0 24px 48px var(--shadow);
+    padding: 28px 24px 20px;
+}
+
+#completion-modal-title {
+    margin: 0 0 16px;
+    color: var(--heading-color);
+    text-align: center;
+    font-size: clamp(1.5rem, 2vw, 2rem);
+}
+
+.completion-modal-message {
+    margin: 0 0 16px;
+    text-align: center;
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+}
+
+.completion-modal-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 16px;
+    margin: 0;
+}
+
+.completion-modal-stats div {
+    background: var(--panel-alt);
+    border: 1px solid var(--panel-soft-border);
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+
+.completion-modal-stats dt {
+    margin: 0 0 6px;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+.completion-modal-stats dd {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--stat-text);
+}
+
+.completion-modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.completion-primary-action,
+.completion-secondary-action {
+    min-width: 140px;
+    max-width: none;
+    flex: 0 0 auto;
+}
+
+.completion-secondary-action {
+    background: var(--panel-alt);
+    color: var(--text-color);
+    border: 1px solid var(--panel-border);
+}
+
+.completion-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-color);
+    font-size: 2rem;
+    line-height: 1;
+    box-shadow: none;
+}
+
+.completion-modal-close:hover {
+    background: var(--panel-alt);
+}
+
+@media (max-width: 820px) {
+    .game-stage {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .side-panel {
+        width: 100%;
+        max-width: 460px;
+        align-items: center;
+    }
+
+    .game-controls-right {
+        align-items: center;
+    }
+
+    #timer-container {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .difficulty-control {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .action-row {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 520px) {
+    body {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .sudoku-cell {
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
+    }
+
+    #sudoku-board {
+        margin-bottom: 12px;
+    }
+
+    .completion-modal-panel {
+        padding: 22px 16px 16px;
+    }
+
+    .completion-modal-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .completion-modal-actions {
+        flex-direction: column;
+    }
+
+    .completion-primary-action,
+    .completion-secondary-action {
+        width: 100%;
+    }
 }
 
 #message {

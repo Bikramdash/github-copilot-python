@@ -110,11 +110,28 @@ def test_index_route_includes_theme_toggle():
     assert b'theme.js' in res.data
 
 
+def test_index_route_includes_completion_modal_markup():
+    client = app.test_client()
+    res = client.get('/')
+    assert res.status_code == 200
+    assert b'id="completion-modal"' in res.data
+    assert b'id="completion-modal-title"' in res.data
+    assert b'id="completion-modal-close"' in res.data
+    assert b'completion-modal.js' in res.data
+
+
 def test_index_route_includes_save_load_script():
     client = app.test_client()
     res = client.get('/')
     assert res.status_code == 200
     assert b'save-load.js' in res.data
+
+
+def test_index_route_includes_keyboard_navigation_script():
+    client = app.test_client()
+    res = client.get('/')
+    assert res.status_code == 200
+    assert b'keyboard-navigation.js' in res.data
 
 
 def test_index_route_includes_undo_redo_buttons():

@@ -50,13 +50,21 @@
       : 'medium';
   }
 
+  function normalizeNonNegativeInteger(value, fallback = 0) {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue) || numericValue < 0) {
+      return fallback;
+    }
+    return Math.floor(numericValue);
+  }
+
   class SudokuSaveLoad {
     constructor() {
       this.storageKey = STORAGE_KEY;
       this.version = 1;
     }
 
-    buildSnapshot({ board, initialBoard, difficulty, elapsedSeconds, undoStack, redoStack, running }) {
+    buildSnapshot({ board, initialBoard, difficulty, elapsedSeconds, undoStack, redoStack, running, hintsUsed, movesMade }) {
       return {
         version: this.version,
         board: normalizeBoard(board),
@@ -66,6 +74,8 @@
         undoStack: normalizeHistory(undoStack),
         redoStack: normalizeHistory(redoStack),
         running: Boolean(running),
+        hintsUsed: normalizeNonNegativeInteger(hintsUsed, 0),
+        movesMade: normalizeNonNegativeInteger(movesMade, 0),
         savedAt: Date.now()
       };
     }
@@ -107,6 +117,8 @@
           undoStack: normalizeHistory(parsed.undoStack),
           redoStack: normalizeHistory(parsed.redoStack),
           running: Boolean(parsed.running),
+          hintsUsed: normalizeNonNegativeInteger(parsed.hintsUsed, 0),
+          movesMade: normalizeNonNegativeInteger(parsed.movesMade, 0),
           savedAt: Number(parsed.savedAt) || Date.now()
         };
       } catch (error) {

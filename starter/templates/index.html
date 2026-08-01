@@ -65,6 +65,19 @@
       </table>
     </div>
 
+    <div id="completion-modal" class="completion-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="completion-modal-title">
+      <div class="completion-modal-backdrop" aria-hidden="true"></div>
+      <div class="completion-modal-panel">
+        <button id="completion-modal-close" class="completion-modal-close" type="button" aria-label="Close completion dialog">×</button>
+        <h2 id="completion-modal-title">Puzzle Complete!</h2>
+        <div id="completion-modal-content"></div>
+        <div class="completion-modal-actions">
+          <button id="completion-play-again" type="button" class="completion-primary-action">Play Again</button>
+          <button id="completion-close-button" type="button" class="completion-secondary-action">Close</button>
+        </div>
+      </div>
+    </div>
+
     <div id="statistics-container" aria-live="polite">
       <div class="panel-header">
         <h2>Statistics</h2>
@@ -79,6 +92,8 @@
   <script src="/static/statistics.js"></script>
   <script src="/static/theme.js"></script>
   <script src="/static/save-load.js"></script>
+  <script src="/static/completion-modal.js"></script>
+  <script src="/static/keyboard-navigation.js"></script>
   <script src="/static/main.js"></script>
 </body>
 </html>
