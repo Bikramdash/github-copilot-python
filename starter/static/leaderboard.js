@@ -10,6 +10,7 @@
     const name = typeof entry.name === 'string' ? entry.name.trim() : '';
     const difficulty = typeof entry.difficulty === 'string' ? entry.difficulty : 'easy';
     const timeSeconds = Number(entry.timeSeconds);
+    const hintsUsed = Number(entry.hintsUsed);
 
     if (!name || Number.isNaN(timeSeconds)) {
       return null;
@@ -19,6 +20,7 @@
       name,
       difficulty,
       timeSeconds: Math.max(0, Math.floor(timeSeconds)),
+      hintsUsed: Number.isFinite(hintsUsed) ? Math.max(0, Math.floor(hintsUsed)) : 0,
       completedAt: entry.completedAt || new Date().toISOString()
     };
   }
@@ -69,13 +71,14 @@
       this.entries = this.getEntries();
     }
 
-    addEntry({ name, difficulty, timeSeconds }) {
+    addEntry({ name, difficulty, timeSeconds, hintsUsed = 0 }) {
       const trimmedName = typeof name === 'string' ? name.trim() : '';
       const safeName = trimmedName || 'Anonymous';
       const nextEntry = normalizeEntry({
         name: safeName,
         difficulty,
         timeSeconds,
+        hintsUsed,
         completedAt: new Date().toISOString()
       });
 
@@ -117,7 +120,7 @@
       if (rows.length === 0) {
         const emptyRow = document.createElement('tr');
         const cell = document.createElement('td');
-        cell.colSpan = 4;
+        cell.colSpan = 5;
         cell.textContent = 'No scores yet. Solve a puzzle to claim the top spot!';
         emptyRow.appendChild(cell);
         tbody.appendChild(emptyRow);
@@ -139,10 +142,14 @@
         const difficultyCell = document.createElement('td');
         difficultyCell.textContent = entry.difficulty;
 
+        const hintsCell = document.createElement('td');
+        hintsCell.textContent = String(entry.hintsUsed || 0);
+
         row.appendChild(rankCell);
         row.appendChild(nameCell);
         row.appendChild(timeCell);
         row.appendChild(difficultyCell);
+        row.appendChild(hintsCell);
         tbody.appendChild(row);
       });
     }

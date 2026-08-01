@@ -153,6 +153,20 @@ def test_index_route_includes_leaderboard_ui():
     assert b'Leaderboard' in res.data
 
 
+def test_leaderboard_tracks_hints_used_in_storage_and_render():
+    source = (STARTER / 'static' / 'leaderboard.js').read_text(encoding='utf-8')
+    assert 'hintsUsed: Number.isFinite(hintsUsed) ? Math.max(0, Math.floor(hintsUsed)) : 0' in source
+    assert 'hintsUsed = 0' in source
+    assert 'row.appendChild(hintsCell);' in source
+    assert 'Hints' in (STARTER / 'templates' / 'index.html').read_text(encoding='utf-8')
+
+
+def test_leaderboard_legacy_entries_default_hints_to_zero():
+    source = (STARTER / 'static' / 'leaderboard.js').read_text(encoding='utf-8')
+    assert 'Number(entry.hintsUsed)' in source
+    assert 'Math.max(0, Math.floor(hintsUsed)) : 0' in source
+
+
 def test_index_route_includes_statistics_ui():
     client = app.test_client()
     res = client.get('/')
@@ -180,7 +194,17 @@ def test_hint_route_reveals_one_correct_value():
     initial_empty_count = sum(1 for row in puzzle for cell in row if cell == 0)
     assert initial_empty_count > 0
 
-    res2 = client.post('/hint', json={'board': puzzle})
+    first_empty = next(
+        (row_index, col_index)
+        for row_index in range(len(puzzle))
+        for col_index in range(len(puzzle[row_index]))
+        if puzzle[row_index][col_index] == 0
+    )
+
+    board_for_hint = [row[:] for row in puzzle]
+    board_for_hint[first_empty[0]][first_empty[1]] = 1
+
+    res2 = client.post('/hint', json={'board': board_for_hint})
     assert res2.status_code == 200
     data = res2.get_json()
     assert 'puzzle' in data and 'row' in data and 'col' in data and 'value' in data
@@ -188,9 +212,30 @@ def test_hint_route_reveals_one_correct_value():
     updated_puzzle = data['puzzle']
     row, col = data['row'], data['col']
     assert updated_puzzle[row][col] == data['value'] == solution[row][col]
-    assert sum(1 for row_values in updated_puzzle for cell in row_values if cell == 0) == initial_empty_count - 1
+    assert sum(1 for row_values in updated_puzzle for cell in row_values if cell == 0) == initial_empty_count - 2
+    assert updated_puzzle[first_empty[0]][first_empty[1]] == 1
 
     for i in range(len(puzzle)):
         for j in range(len(puzzle[i])):
             if puzzle[i][j] != 0:
                 assert updated_puzzle[i][j] == puzzle[i][j]
+
+
+def test_hint_keeps_user_values_editable_and_locks_only_hint_cell():
+    source = (STARTER / 'static' / 'main.js').read_text(encoding='utf-8')
+    assert 'function updateBoardCell(row, col, value, locked = false)' in source
+    assert 'puzzle[row][col] = value;' in source
+    assert 'initialBoard[row][col] = value;' in source
+    assert 'input.disabled = locked;' in source
+
+    hint_block = source.split('async function getHint()')[1].split('window.addEventListener', 1)[0]
+    assert 'renderPuzzle(data.puzzle);' not in hint_block
+    assert 'updateBoardCell(data.row, data.col, data.value, true);' in hint_block
+
+
+def test_hint_cells_remain_locked_through_undo_redo():
+    source = (STARTER / 'static' / 'main.js').read_text(encoding='utf-8')
+    assert 'const locked = initialBoard[i][j] !== 0;' in source
+    assert 'const resolvedValue = locked ? initialBoard[i][j] : boardState[i][j];' in source
+    assert 'puzzle = cloneBoard(previousBoard);' in source
+    assert 'puzzle = cloneBoard(nextBoard);' in source

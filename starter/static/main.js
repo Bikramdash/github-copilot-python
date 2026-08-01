@@ -115,10 +115,11 @@ function applyBoardState(boardState) {
     for (let j = 0; j < SIZE; j++) {
       const idx = i * SIZE + j;
       const inp = inputs[idx];
-      const val = boardState[i][j];
-      inp.value = val === 0 ? '' : String(val);
-      inp.disabled = initialBoard[i][j] !== 0;
-      inp.className = initialBoard[i][j] !== 0 ? 'sudoku-cell prefilled' : 'sudoku-cell';
+      const locked = initialBoard[i][j] !== 0;
+      const resolvedValue = locked ? initialBoard[i][j] : boardState[i][j];
+      inp.value = resolvedValue === 0 ? '' : String(resolvedValue);
+      inp.disabled = locked;
+      inp.className = locked ? 'sudoku-cell prefilled' : 'sudoku-cell';
     }
   }
 }
@@ -156,6 +157,7 @@ function undoMove() {
   const currentBoard = readBoardFromInputs();
   redoStack.push(cloneBoard(currentBoard));
   const previousBoard = undoStack.pop();
+  puzzle = cloneBoard(previousBoard);
   applyBoardState(previousBoard);
   updateHistoryButtons();
   persistGameState();
@@ -168,6 +170,7 @@ function redoMove() {
   const currentBoard = readBoardFromInputs();
   undoStack.push(cloneBoard(currentBoard));
   const nextBoard = redoStack.pop();
+  puzzle = cloneBoard(nextBoard);
   applyBoardState(nextBoard);
   updateHistoryButtons();
   persistGameState();
@@ -183,7 +186,8 @@ function promptForLeaderboardEntry() {
   leaderboard.addEntry({
     name,
     difficulty: getSelectedDifficulty(),
-    timeSeconds: timer.elapsedSeconds
+    timeSeconds: timer.elapsedSeconds,
+    hintsUsed
   });
 }
 
@@ -245,6 +249,27 @@ function resetCellStyles(inputs) {
 
 function getSelectedDifficulty() {
   return document.getElementById('difficulty-select').value;
+}
+
+function updateBoardCell(row, col, value, locked = false) {
+  const boardDiv = document.getElementById('sudoku-board');
+  if (!boardDiv) {
+    return;
+  }
+
+  const input = boardDiv.querySelector(`input[data-row="${row}"][data-col="${col}"]`);
+  if (!input) {
+    return;
+  }
+
+  puzzle[row][col] = value;
+  if (locked) {
+    initialBoard[row][col] = value;
+  }
+
+  input.value = value === 0 ? '' : String(value);
+  input.disabled = locked;
+  input.className = locked ? 'sudoku-cell prefilled' : 'sudoku-cell';
 }
 
 function renderPuzzle(puz) {
@@ -363,8 +388,11 @@ async function getHint() {
     setMessage(data.error, 'error');
     return;
   }
+
   hintsUsed += 1;
-  renderPuzzle(data.puzzle);
+  puzzle = cloneBoard(data.puzzle);
+  updateBoardCell(data.row, data.col, data.value, true);
+  persistGameState();
   setMessage(`Hint revealed row ${data.row + 1}, column ${data.col + 1}.`, 'info');
 }
 

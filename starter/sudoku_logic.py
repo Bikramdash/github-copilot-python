@@ -49,14 +49,46 @@ def fill_board(board):
     return True
 
 
+def count_solutions(board, limit=2):
+    working_board = deep_copy(board)
+    solution_count = 0
+
+    def backtrack():
+        nonlocal solution_count
+
+        if solution_count >= limit:
+            return
+
+        for row in range(SIZE):
+            for col in range(SIZE):
+                if working_board[row][col] == EMPTY:
+                    for num in range(1, SIZE + 1):
+                        if is_safe(working_board, row, col, num):
+                            working_board[row][col] = num
+                            backtrack()
+                            if solution_count >= limit:
+                                working_board[row][col] = EMPTY
+                                return
+                            working_board[row][col] = EMPTY
+                    return
+        solution_count += 1
+
+    backtrack()
+    return solution_count
+
+
 def remove_cells(board, clues):
     attempts = SIZE * SIZE - clues
     while attempts > 0:
         row = random.randrange(SIZE)
         col = random.randrange(SIZE)
         if board[row][col] != EMPTY:
+            removed_value = board[row][col]
             board[row][col] = EMPTY
-            attempts -= 1
+            if count_solutions(board, limit=2) != 1:
+                board[row][col] = removed_value
+            else:
+                attempts -= 1
 
 
 def resolve_clues(clues=None, difficulty=None):

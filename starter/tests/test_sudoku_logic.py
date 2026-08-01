@@ -55,3 +55,17 @@ def test_generate_puzzle_difficulty_levels():
         non_empty = sum(1 for row in puzzle for cell in row if cell != sudoku_logic.EMPTY)
         assert non_empty == clues
         assert all(cell != sudoku_logic.EMPTY for row in solution for cell in row)
+
+
+def test_count_solutions_returns_one_for_generated_puzzles():
+    for difficulty in ['easy', 'medium', 'hard']:
+        for _ in range(5):
+            puzzle, _ = sudoku_logic.generate_puzzle(difficulty=difficulty)
+            assert sudoku_logic.count_solutions(puzzle, limit=2) == 1
+
+
+def test_generate_puzzle_uses_unique_solution_constraint():
+    for difficulty in ['easy', 'medium', 'hard']:
+        for _ in range(5):
+            puzzle, _ = sudoku_logic.generate_puzzle(difficulty=difficulty)
+            assert sudoku_logic.count_solutions(puzzle, limit=2) == 1
