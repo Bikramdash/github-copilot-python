@@ -163,4 +163,8 @@ Possible future enhancements include:
 
 **Bikram Dash**
 
+<<<<<<< HEAD
 GitHub: https://github.com/Bikramdash
+=======
+GitHub: https://github.com/Bikramdash
+>>>>>>> 2b43828 (Final)

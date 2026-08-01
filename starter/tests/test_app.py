@@ -93,6 +93,17 @@ def test_new_game_supports_difficulty_param():
     assert non_empty == 25
 
 
+def test_live_conflict_validation_highlights_and_clears_duplicates():
+    main_js = (STARTER / 'static' / 'main.js').read_text(encoding='utf-8')
+    styles = (STARTER / 'static' / 'styles.css').read_text(encoding='utf-8')
+
+    assert 'findConflictingCells' in main_js
+    assert 'applyConflictHighlights' in main_js
+    assert "classList.toggle('conflict'" in main_js
+    assert 'applyConflictHighlights();' in main_js
+    assert '.sudoku-cell.conflict' in styles
+
+
 def test_index_route_includes_timer_ui():
     client = app.test_client()
     res = client.get('/')

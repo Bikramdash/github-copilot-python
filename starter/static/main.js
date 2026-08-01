@@ -39,6 +39,117 @@ function cloneHistory(history) {
   return Array.isArray(history) ? history.map((entry) => cloneBoard(entry)) : [];
 }
 
+function getSubgridClass(row, col) {
+  return (Math.floor(row / 3) + Math.floor(col / 3)) % 2 === 0 ? 'subgrid-even' : 'subgrid-odd';
+}
+
+function setCellClasses(input, row, col, { locked = false, incorrect = false, conflict = false } = {}) {
+  const classes = ['sudoku-cell', getSubgridClass(row, col)];
+  if (locked) {
+    classes.push('prefilled');
+  }
+  if (incorrect) {
+    classes.push('incorrect');
+  }
+  input.className = classes.join(' ');
+  input.classList.toggle('conflict', Boolean(conflict));
+}
+
+function findConflictingCells() {
+  const boardDiv = document.getElementById('sudoku-board');
+  if (!boardDiv) {
+    return new Set();
+  }
+
+  const inputs = boardDiv.getElementsByTagName('input');
+  const board = [];
+  for (let i = 0; i < SIZE; i++) {
+    board[i] = [];
+    for (let j = 0; j < SIZE; j++) {
+      const idx = i * SIZE + j;
+      const val = inputs[idx].value;
+      board[i][j] = val ? parseInt(val, 10) : 0;
+    }
+  }
+
+  const conflicts = new Set();
+
+  function markDuplicates(positions) {
+    if (positions.length > 1) {
+      positions.forEach((index) => conflicts.add(index));
+    }
+  }
+
+  for (let row = 0; row < SIZE; row += 1) {
+    const seenValues = new Map();
+    for (let col = 0; col < SIZE; col += 1) {
+      const value = board[row][col];
+      if (value === 0) {
+        continue;
+      }
+      if (!seenValues.has(value)) {
+        seenValues.set(value, []);
+      }
+      seenValues.get(value).push(row * SIZE + col);
+    }
+    seenValues.forEach(markDuplicates);
+  }
+
+  for (let col = 0; col < SIZE; col += 1) {
+    const seenValues = new Map();
+    for (let row = 0; row < SIZE; row += 1) {
+      const value = board[row][col];
+      if (value === 0) {
+        continue;
+      }
+      if (!seenValues.has(value)) {
+        seenValues.set(value, []);
+      }
+      seenValues.get(value).push(row * SIZE + col);
+    }
+    seenValues.forEach(markDuplicates);
+  }
+
+  for (let boxRow = 0; boxRow < SIZE; boxRow += 3) {
+    for (let boxCol = 0; boxCol < SIZE; boxCol += 3) {
+      const seenValues = new Map();
+      for (let row = boxRow; row < boxRow + 3; row += 1) {
+        for (let col = boxCol; col < boxCol + 3; col += 1) {
+          const value = board[row][col];
+          if (value === 0) {
+            continue;
+          }
+          if (!seenValues.has(value)) {
+            seenValues.set(value, []);
+          }
+          seenValues.get(value).push(row * SIZE + col);
+        }
+      }
+      seenValues.forEach(markDuplicates);
+    }
+  }
+
+  return conflicts;
+}
+
+function applyConflictHighlights() {
+  const boardDiv = document.getElementById('sudoku-board');
+  if (!boardDiv) {
+    return;
+  }
+
+  const inputs = boardDiv.getElementsByTagName('input');
+  const conflicts = findConflictingCells();
+
+  for (let idx = 0; idx < inputs.length; idx += 1) {
+    const inp = inputs[idx];
+    const row = Math.floor(idx / SIZE);
+    const col = idx % SIZE;
+    const locked = inp.disabled;
+    setCellClasses(inp, row, col, { locked, conflict: conflicts.has(idx) });
+  }
+}
+
 function persistGameState() {
   if (!window.SudokuSaveLoad || typeof window.SudokuSaveLoad.saveGame !== 'function') {
     return null;
@@ -119,7 +230,7 @@ function applyBoardState(boardState) {
       const resolvedValue = locked ? initialBoard[i][j] : boardState[i][j];
       inp.value = resolvedValue === 0 ? '' : String(resolvedValue);
       inp.disabled = locked;
-      inp.className = locked ? 'sudoku-cell prefilled' : 'sudoku-cell';
+      setCellClasses(inp, i, j, { locked });
     }
   }
 }
@@ -201,7 +312,7 @@ function createBoardElement() {
       const input = document.createElement('input');
       input.type = 'text';
       input.maxLength = 1;
-      input.className = 'sudoku-cell';
+      setCellClasses(input, i, j);
       input.dataset.row = i;
       input.dataset.col = j;
       input.addEventListener('focus', () => {
@@ -221,12 +332,27 @@ function createBoardElement() {
           persistGameState();
         }
         input.dataset.previousBoard = JSON.stringify(currentBoard);
+        applyConflictHighlights();
       });
       rowDiv.appendChild(input);
     }
     boardDiv.appendChild(rowDiv);
   }
 }
+
+document.addEventListener('input', (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement) || !target.classList.contains('sudoku-cell')) {
+    return;
+  }
+
+  if (target.disabled) {
+    target.value = '';
+    return;
+  }
+
+  applyConflictHighlights();
+}, true);
 
 function setMessage(message, type = 'info') {
   const msg = document.getElementById('message');
@@ -240,10 +366,10 @@ function setMessage(message, type = 'info') {
 function resetCellStyles(inputs) {
   for (let idx = 0; idx < inputs.length; idx++) {
     const inp = inputs[idx];
-    if (inp.disabled) {
-      continue;
-    }
-    inp.className = 'sudoku-cell';
+    const row = Math.floor(idx / SIZE);
+    const col = idx % SIZE;
+    const locked = inp.disabled;
+    setCellClasses(inp, row, col, { locked, conflict: false });
   }
 }
 
@@ -269,7 +395,8 @@ function updateBoardCell(row, col, value, locked = false) {
 
   input.value = value === 0 ? '' : String(value);
   input.disabled = locked;
-  input.className = locked ? 'sudoku-cell prefilled' : 'sudoku-cell';
+  setCellClasses(input, row, col, { locked });
+  applyConflictHighlights();
 }
 
 function renderPuzzle(puz) {
@@ -277,6 +404,7 @@ function renderPuzzle(puz) {
   initialBoard = cloneBoard(puz);
   createBoardElement();
   applyBoardState(puzzle);
+  applyConflictHighlights();
   resetHistory();
   persistGameState();
 }
@@ -335,8 +463,12 @@ async function checkSolution() {
     if (inp.disabled) {
       continue;
     }
+    const row = Math.floor(idx / SIZE);
+    const col = idx % SIZE;
     if (incorrect.has(idx)) {
-      inp.className = 'sudoku-cell incorrect';
+      setCellClasses(inp, row, col, { incorrect: true });
+    } else {
+      setCellClasses(inp, row, col);
     }
   }
   if (data.solved) {

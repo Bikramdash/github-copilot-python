@@ -10,6 +10,8 @@
     --board-border: #333333;
     --cell-bg: #fafafa;
     --cell-input-bg: #f8fafc;
+    --cell-subgrid-even-bg: var(--cell-bg);
+    --cell-subgrid-odd-bg: var(--cell-input-bg);
     --cell-prefilled-bg: #e0e0e0;
     --cell-focus-bg: #e0f7fa;
     --cell-focus-ring: #0f766e;
@@ -38,6 +40,8 @@ body[data-theme='dark'] {
     --board-border: #d1d5db;
     --cell-bg: #0f172a;
     --cell-input-bg: #111827;
+    --cell-subgrid-even-bg: var(--cell-bg);
+    --cell-subgrid-odd-bg: var(--cell-input-bg);
     --cell-prefilled-bg: #374151;
     --cell-focus-bg: #1d4ed8;
     --cell-focus-ring: #7dd3fc;
@@ -204,6 +208,14 @@ select {
     transition: background 0.2s ease, color 0.2s ease;
 }
 
+.sudoku-cell.subgrid-even {
+    background: var(--cell-subgrid-even-bg);
+}
+
+.sudoku-cell.subgrid-odd {
+    background: var(--cell-subgrid-odd-bg);
+}
+
 .sudoku-cell.is-selected,
 .sudoku-cell:focus-visible {
     background: var(--cell-focus-bg);
@@ -221,6 +233,12 @@ select {
 
 .sudoku-cell.incorrect {
     background: var(--cell-incorrect-bg);
+}
+
+.sudoku-cell.conflict {
+    background: #fca5a5;
+    border-color: #dc2626;
+    box-shadow: inset 0 0 0 2px #dc2626;
 }
 
 .sudoku-cell:nth-child(3),
